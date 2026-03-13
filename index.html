@@ -1455,7 +1455,6 @@
     <button class="lb-nav lb-next" id="lbNext" aria-label="Próximo"><i class="fas fa-chevron-right"></i></button>
     <div class="lb-inner">
         <img id="lbImg" src="" alt="">
-        <p class="lb-caption" id="lbCaption"></p>
         <div class="lb-counter" id="lbCounter"></div>
     </div>
 </div>
@@ -1566,7 +1565,6 @@
             lbImg.src = '';
             lbImg.src = imgs[current].src;
             lbImg.alt = imgs[current].alt;
-            lbCaption.textContent = imgs[current].alt;
             lbCounter.textContent = (current + 1) + ' / ' + imgs.length;
             lbPrev.style.opacity = imgs.length > 1 ? '1' : '0';
             lbNext.style.opacity = imgs.length > 1 ? '1' : '0';
