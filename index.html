@@ -907,6 +907,104 @@
         .ct-card.fi:nth-child(4) { transition-delay: .3s; }
         .ct-card.fi:nth-child(5) { transition-delay: .4s; }
 
+        /* ===== LIGHTBOX ===== */
+        #lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            background: rgba(0,0,0,.92);
+            backdrop-filter: blur(6px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        #lightbox.open { display: flex; animation: lbFade .25s ease; }
+
+        @keyframes lbFade {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        .lb-inner {
+            position: relative;
+            max-width: min(90vw, 1100px);
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        #lbImg {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.6);
+            animation: lbScale .3s cubic-bezier(.34,1.56,.64,1);
+            display: block;
+        }
+
+        @keyframes lbScale {
+            from { transform: scale(.88); opacity: 0; }
+            to   { transform: scale(1);  opacity: 1; }
+        }
+
+        .lb-caption {
+            color: rgba(255,255,255,.75);
+            font-size: .84rem;
+            text-align: center;
+            max-width: 700px;
+            line-height: 1.5;
+        }
+
+        .lb-counter {
+            font-size: .75rem;
+            color: var(--orange);
+            letter-spacing: 1px;
+            font-family: var(--font-heading);
+        }
+
+        .lb-close {
+            position: fixed;
+            top: 1.25rem; right: 1.5rem;
+            width: 44px; height: 44px;
+            background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 50%;
+            color: var(--white);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all .25s;
+            z-index: 3001;
+        }
+
+        .lb-close:hover { background: var(--orange); border-color: var(--orange); }
+
+        .lb-nav {
+            position: fixed;
+            top: 50%; transform: translateY(-50%);
+            width: 50px; height: 50px;
+            background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.2);
+            border-radius: 50%;
+            color: var(--white);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all .25s;
+            z-index: 3001;
+        }
+
+        .lb-prev { left: 1.25rem; }
+        .lb-next { right: 1.25rem; }
+        .lb-nav:hover { background: var(--orange); border-color: var(--orange); transform: translateY(-50%) scale(1.08); }
+
+        /* cursor de lupa nas fotos do carrossel */
+        .carousel-slide { cursor: zoom-in; }
+
         /* ===== TILT 3D NOS CARDS SERVIÇOS ===== */
         .serv-card { transform-style: preserve-3d; }
 
@@ -1350,6 +1448,18 @@
     </div>
 </section>
 
+<!-- ===== LIGHTBOX ===== -->
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Visualizar foto">
+    <button class="lb-close" id="lbClose" aria-label="Fechar"><i class="fas fa-times"></i></button>
+    <button class="lb-nav lb-prev" id="lbPrev" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+    <button class="lb-nav lb-next" id="lbNext" aria-label="Próximo"><i class="fas fa-chevron-right"></i></button>
+    <div class="lb-inner">
+        <img id="lbImg" src="" alt="">
+        <p class="lb-caption" id="lbCaption"></p>
+        <div class="lb-counter" id="lbCounter"></div>
+    </div>
+</div>
+
 <!-- ===== FOOTER ===== -->
 <footer>
     <div class="footer-logo-row">
@@ -1416,6 +1526,98 @@
 
     /* ── hero aparece imediatamente ── */
     document.querySelector('.hero-inner').classList.add('visible');
+
+    /* ══════════════════════════════════════════════
+       LIGHTBOX
+    ══════════════════════════════════════════════ */
+    (function() {
+        var lb        = document.getElementById('lightbox');
+        var lbImg     = document.getElementById('lbImg');
+        var lbCaption = document.getElementById('lbCaption');
+        var lbCounter = document.getElementById('lbCounter');
+        var lbClose   = document.getElementById('lbClose');
+        var lbPrev    = document.getElementById('lbPrev');
+        var lbNext    = document.getElementById('lbNext');
+
+        var slides    = Array.from(document.querySelectorAll('.carousel-slide'));
+        var current   = 0;
+
+        function getImages() {
+            return slides.map(function(s) {
+                var img = s.querySelector('img');
+                return { src: img.src, alt: img.alt };
+            });
+        }
+
+        function open(idx) {
+            current = idx;
+            show();
+            lb.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function close() {
+            lb.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function show() {
+            var imgs = getImages();
+            lbImg.src = '';
+            lbImg.src = imgs[current].src;
+            lbImg.alt = imgs[current].alt;
+            lbCaption.textContent = imgs[current].alt;
+            lbCounter.textContent = (current + 1) + ' / ' + imgs.length;
+            lbPrev.style.opacity = imgs.length > 1 ? '1' : '0';
+            lbNext.style.opacity = imgs.length > 1 ? '1' : '0';
+        }
+
+        function prev() {
+            current = (current - 1 + getImages().length) % getImages().length;
+            lbImg.style.animation = 'none';
+            lbImg.offsetHeight;
+            lbImg.style.animation = '';
+            show();
+        }
+
+        function next() {
+            current = (current + 1) % getImages().length;
+            lbImg.style.animation = 'none';
+            lbImg.offsetHeight;
+            lbImg.style.animation = '';
+            show();
+        }
+
+        /* abrir ao clicar no slide */
+        slides.forEach(function(slide, idx) {
+            slide.addEventListener('click', function() { open(idx); });
+        });
+
+        lbClose.addEventListener('click', close);
+        lbPrev.addEventListener('click', function(e) { e.stopPropagation(); prev(); });
+        lbNext.addEventListener('click', function(e) { e.stopPropagation(); next(); });
+
+        /* fechar ao clicar fora da imagem */
+        lb.addEventListener('click', function(e) {
+            if (e.target === lb) close();
+        });
+
+        /* teclado */
+        document.addEventListener('keydown', function(e) {
+            if (!lb.classList.contains('open')) return;
+            if (e.key === 'Escape')     close();
+            if (e.key === 'ArrowLeft')  prev();
+            if (e.key === 'ArrowRight') next();
+        });
+
+        /* swipe mobile */
+        var touchStartX = 0;
+        lb.addEventListener('touchstart', function(e) { touchStartX = e.touches[0].clientX; }, { passive: true });
+        lb.addEventListener('touchend',   function(e) {
+            var diff = touchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 40) diff > 0 ? next() : prev();
+        });
+    })();
 
     /* ══════════════════════════════════════════════
        SCROLL PROGRESS BAR
