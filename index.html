@@ -840,9 +840,94 @@
         @media (min-width: 1440px) { .container { max-width: 1320px; } }
         @media (min-width: 1920px) { .container { max-width: 1560px; } }
         @media (min-width: 2560px) { html { font-size: 18px; } .container { max-width: 1900px; } }
+
+        /* ===== SCROLL PROGRESS BAR ===== */
+        #scroll-progress {
+            position: fixed;
+            top: 0; left: 0;
+            height: 3px;
+            width: 0%;
+            background: linear-gradient(90deg, var(--orange), var(--blue-royal), var(--orange-light));
+            background-size: 200% 100%;
+            z-index: 2000;
+            transition: width .08s linear;
+            animation: progressShimmer 2s linear infinite;
+        }
+
+        @keyframes progressShimmer {
+            0%   { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        /* ===== CANVAS HERO PARTÍCULAS ===== */
+        #heroCanvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* ===== RIPPLE NOS BOTÕES ===== */
+        .btn-primary, .btn-outline-light {
+            position: relative;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: rippleAnim .6s linear;
+            background: rgba(255,255,255,.28);
+            pointer-events: none;
+        }
+
+        @keyframes rippleAnim {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        /* ===== STAGGER CARDS ===== */
+        .serv-card.fi:nth-child(1) { transition-delay: 0s; }
+        .serv-card.fi:nth-child(2) { transition-delay: .15s; }
+        .serv-card.fi:nth-child(3) { transition-delay: .30s; }
+
+        .mvv-card.fi:nth-child(1) { transition-delay: 0s; }
+        .mvv-card.fi:nth-child(2) { transition-delay: .15s; }
+        .mvv-card.fi:nth-child(3) { transition-delay: .30s; }
+
+        .tl-item.fi:nth-child(1) { transition-delay: 0s; }
+        .tl-item.fi:nth-child(2) { transition-delay: .15s; }
+        .tl-item.fi:nth-child(3) { transition-delay: .30s; }
+        .tl-item.fi:nth-child(4) { transition-delay: .45s; }
+
+        .ct-card.fi:nth-child(1) { transition-delay: 0s; }
+        .ct-card.fi:nth-child(2) { transition-delay: .1s; }
+        .ct-card.fi:nth-child(3) { transition-delay: .2s; }
+        .ct-card.fi:nth-child(4) { transition-delay: .3s; }
+        .ct-card.fi:nth-child(5) { transition-delay: .4s; }
+
+        /* ===== TILT 3D NOS CARDS SERVIÇOS ===== */
+        .serv-card { transform-style: preserve-3d; }
+
+        /* ===== GLOW NO BOTÃO WA FLUTUANTE ===== */
+        @keyframes waPulse {
+            0%, 100% { box-shadow: 0 4px 18px rgba(37,211,102,.42); }
+            50%       { box-shadow: 0 4px 32px rgba(37,211,102,.75), 0 0 0 10px rgba(37,211,102,.12); }
+        }
+
+        .wa-float { animation: waPulse 2.2s ease-in-out infinite; }
+        .wa-float:hover { animation: none; }
+
+        /* ===== EFEITO TYPING NO SLOGAN ===== */
+        .hero-slogan { border-right: 2px solid var(--orange-light); white-space: nowrap; display: inline-block; }
+        .hero-slogan.typed { border-right-color: transparent; }
     </style>
 </head>
 <body>
+
+<!-- ===== SCROLL PROGRESS ===== -->
+<div id="scroll-progress"></div>
 
 <!-- ===== HEADER ===== -->
 <header>
@@ -886,6 +971,7 @@
 
 <!-- ===== HERO ===== -->
 <section id="inicio">
+    <canvas id="heroCanvas"></canvas>
     <div class="hero-inner fi">
         <img src="images/logo.png" alt="Logo Sassa Pneus" class="hero-logo">
 
@@ -898,15 +984,15 @@
 
         <div class="hero-stats">
             <div class="hero-stat">
-                <div class="num">30+</div>
+                <div class="num count-up" data-target="30" data-suffix="+">0</div>
                 <div class="lbl">Anos no mercado</div>
             </div>
             <div class="hero-stat">
-                <div class="num">10+</div>
+                <div class="num count-up" data-target="10" data-suffix="+">0</div>
                 <div class="lbl">Unidades abertas</div>
             </div>
             <div class="hero-stat">
-                <div class="num">2</div>
+                <div class="num count-up" data-target="2" data-suffix="">0</div>
                 <div class="lbl">Lojas ativas</div>
             </div>
         </div>
@@ -1330,6 +1416,157 @@
 
     /* ── hero aparece imediatamente ── */
     document.querySelector('.hero-inner').classList.add('visible');
+
+    /* ══════════════════════════════════════════════
+       SCROLL PROGRESS BAR
+    ══════════════════════════════════════════════ */
+    var progressBar = document.getElementById('scroll-progress');
+    window.addEventListener('scroll', function() {
+        var pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+        progressBar.style.width = pct + '%';
+    }, { passive: true });
+
+    /* ══════════════════════════════════════════════
+       PARTÍCULAS NO HERO (CANVAS)
+    ══════════════════════════════════════════════ */
+    (function() {
+        var canvas = document.getElementById('heroCanvas');
+        var ctx    = canvas.getContext('2d');
+        var particles = [];
+        var W, H;
+
+        function resize() {
+            W = canvas.width  = canvas.offsetWidth;
+            H = canvas.height = canvas.offsetHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize, { passive: true });
+
+        function rand(min, max) { return Math.random() * (max - min) + min; }
+
+        function Particle() {
+            this.reset = function() {
+                this.x  = rand(0, W);
+                this.y  = rand(0, H);
+                this.r  = rand(1, 3);
+                this.vx = rand(-0.4, 0.4);
+                this.vy = rand(-0.7, -0.2);
+                this.alpha = rand(0.08, 0.35);
+                this.color = Math.random() > 0.5 ? '232,119,34' : '30,64,175';
+            };
+            this.reset();
+            this.y = rand(0, H);
+        }
+
+        for (var i = 0; i < 55; i++) particles.push(new Particle());
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+            particles.forEach(function(p) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(' + p.color + ',' + p.alpha + ')';
+                ctx.fill();
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.y < -10 || p.x < -10 || p.x > W + 10) p.reset();
+            });
+            requestAnimationFrame(draw);
+        }
+        draw();
+    })();
+
+    /* ══════════════════════════════════════════════
+       CONTADOR ANIMADO
+    ══════════════════════════════════════════════ */
+    (function() {
+        var counters = document.querySelectorAll('.count-up');
+        var counted  = false;
+
+        function startCount() {
+            if (counted) return;
+            var heroRect = document.getElementById('inicio').getBoundingClientRect();
+            if (heroRect.bottom > 0) {
+                counted = true;
+                counters.forEach(function(el) {
+                    var target = parseInt(el.getAttribute('data-target'));
+                    var suffix = el.getAttribute('data-suffix') || '';
+                    var start  = 0;
+                    var dur    = 1800;
+                    var startT = null;
+
+                    function step(ts) {
+                        if (!startT) startT = ts;
+                        var prog = Math.min((ts - startT) / dur, 1);
+                        var ease = 1 - Math.pow(1 - prog, 3);
+                        el.textContent = Math.floor(ease * target) + suffix;
+                        if (prog < 1) requestAnimationFrame(step);
+                        else el.textContent = target + suffix;
+                    }
+                    requestAnimationFrame(step);
+                });
+            }
+        }
+
+        window.addEventListener('scroll', startCount, { passive: true });
+        setTimeout(startCount, 500);
+    })();
+
+    /* ══════════════════════════════════════════════
+       RIPPLE NOS BOTÕES
+    ══════════════════════════════════════════════ */
+    document.querySelectorAll('.btn-primary, .btn-outline-light').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            var r   = document.createElement('span');
+            var box = btn.getBoundingClientRect();
+            var sz  = Math.max(box.width, box.height);
+            r.className = 'ripple';
+            r.style.cssText = 'width:' + sz + 'px;height:' + sz + 'px;'
+                + 'left:' + (e.clientX - box.left - sz / 2) + 'px;'
+                + 'top:'  + (e.clientY - box.top  - sz / 2) + 'px;';
+            btn.appendChild(r);
+            setTimeout(function() { r.remove(); }, 620);
+        });
+    });
+
+    /* ══════════════════════════════════════════════
+       TILT 3D NOS CARDS DE SERVIÇOS
+    ══════════════════════════════════════════════ */
+    document.querySelectorAll('.serv-card').forEach(function(card) {
+        card.addEventListener('mousemove', function(e) {
+            var box  = card.getBoundingClientRect();
+            var cx   = box.width  / 2;
+            var cy   = box.height / 2;
+            var mx   = e.clientX - box.left - cx;
+            var my   = e.clientY - box.top  - cy;
+            var rotX = -(my / cy) * 6;
+            var rotY =  (mx / cx) * 6;
+            card.style.transform = 'translateY(-8px) perspective(600px) rotateX(' + rotX + 'deg) rotateY(' + rotY + 'deg)';
+        });
+        card.addEventListener('mouseleave', function() {
+            card.style.transform = '';
+        });
+    });
+
+    /* ══════════════════════════════════════════════
+       TYPEWRITER NO SLOGAN
+    ══════════════════════════════════════════════ */
+    (function() {
+        var el   = document.querySelector('.hero-slogan');
+        var text = el.textContent.trim();
+        el.textContent = '';
+        var i = 0;
+        function type() {
+            if (i <= text.length) {
+                el.textContent = text.slice(0, i);
+                i++;
+                setTimeout(type, i === 1 ? 900 : 50);
+            } else {
+                el.classList.add('typed');
+            }
+        }
+        setTimeout(type, 1200);
+    })();
 
     /* ── CARROSSEL ── */
     (function() {
