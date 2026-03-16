@@ -774,19 +774,6 @@
 
         .wa-float:hover { transform: scale(1.12); box-shadow: 0 6px 26px rgba(37,211,102,.62); }
 
-        /* ===== Scroll top ===== */
-        .scroll-top {
-            position: fixed; bottom: 5.5rem; right: 2rem; z-index: 997;
-            width: 44px; height: 44px;
-            background: var(--orange); border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            color: var(--white); font-size: .95rem;
-            box-shadow: var(--shadow);
-            opacity: 0; pointer-events: none; transition: all .35s;
-        }
-
-        .scroll-top.vis { opacity: 1; pointer-events: all; }
-        .scroll-top:hover { background: var(--orange-dark); transform: translateY(-3px); }
 
         /* ===== RESPONSIVO ===== */
         @media (max-width: 1023px) {
@@ -1482,10 +1469,6 @@
     <i class="fab fa-whatsapp"></i>
 </a>
 
-<!-- ===== SCROLL TO TOP ===== -->
-<a href="#inicio" class="scroll-top" id="scrollTop" aria-label="Voltar ao topo">
-    <i class="fas fa-chevron-up"></i>
-</a>
 
 <script>
     /* ── menu mobile ── */
@@ -1498,13 +1481,7 @@
         if (!nav.contains(e.target) && !btn.contains(e.target)) closeNav();
     });
 
-    /* ── scroll top ── */
-    var stBtn = document.getElementById('scrollTop');
-    window.addEventListener('scroll', function() {
-        stBtn.classList.toggle('vis', window.scrollY > 450);
-    });
-
-    /* ── fade-in ── */
+/* ── fade-in ── */
     var obs = new IntersectionObserver(function(entries) {
         entries.forEach(function(en) {
             if (en.isIntersecting) en.target.classList.add('visible');
